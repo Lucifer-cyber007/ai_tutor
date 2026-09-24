@@ -342,3 +342,28 @@ input[type="text"]:focus, textarea:focus { outline: none; border-color: var(--pr
 .feedback div { color: var(--text); }
 
 .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* Quiz score ring */
+.score-ring {
+  --p: 0;
+  width: 132px; height: 132px;
+  margin: 4px auto;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  background: conic-gradient(#7c5cf6 calc(var(--p) * 1%), var(--primary-soft) 0);
+}
+.score-ring div {
+  width: 104px; height: 104px;
+  border-radius: 50%;
+  background: var(--surface);
+  display: grid; place-items: center;
+  font-size: 1.7rem; font-weight: 800; color: var(--primary);
+}
+.center { text-align: center; }
+
+.review { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.review li { padding: 12px 14px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface-soft); }
+.review .mark { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; font-size: 0.8rem; font-weight: 800; margin-right: 8px; color: #fff; }
+.review .mark.good { background: var(--good); }
+.review .mark.bad  { background: var(--bad); }
+.review .detail { color: var(--muted); font-size: 0.88rem; margin-top: 4px; }
