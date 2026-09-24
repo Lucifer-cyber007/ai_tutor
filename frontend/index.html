@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#5b4bdb">
+  <title>AI Tutor - Class 8 Algebra</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%235b4bdb'/%3E%3Ctext x='32' y='44' font-family='Arial' font-size='34' font-weight='700' fill='white' text-anchor='middle'%3Ex%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">x</div>
+        <div>
+          <h1>AI Tutor</h1>
+          <p id="subtitle">Your personal helper for Class 8 Algebra</p>
+        </div>
+      </div>
+      <button id="finish" type="button" class="secondary small" hidden>Finish session</button>
+    </header>
+
+    <div id="error" class="error" role="alert" hidden></div>
+
+    <!-- Start screen -->
+    <section id="start-screen" class="start">
+      <div class="hero">
+        <span class="eyebrow">Class 8 · Algebra</span>
+        <h2>Learn algebra, one clear step at a time.</h2>
+        <p>Explanations in simple words, hints before answers, and practice that adapts to you.</p>
+      </div>
+
+      <form id="start-form" class="card start-card" novalidate>
+        <div class="field">
+          <label for="name">What should I call you?</label>
+          <input id="name" type="text" maxlength="40" autocomplete="given-name" placeholder="Your first name">
+        </div>
+
+        <fieldset class="field">
+          <legend>Your level</legend>
+          <div class="choices levels">
+            <label><input type="radio" name="level" value="Beginner" checked><span><strong>Beginner</strong><small>Start simple</small></span></label>
+            <label><input type="radio" name="level" value="Intermediate"><span><strong>Intermediate</strong><small>Textbook level</small></span></label>
+            <label><input type="radio" name="level" value="Advanced"><span><strong>Advanced</strong><small>Challenge me</small></span></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>Pick a topic</legend>
+          <div class="choices topics">
+            <label><input type="radio" name="topic" value="expressions"><span><em class="glyph">3a + 2a</em><strong>Expressions</strong><small>Variables, like terms, simplifying</small></span></label>
+            <label><input type="radio" name="topic" value="equations" checked><span><em class="glyph">2x + 3 = 11</em><strong>Linear equations</strong><small>Find the value of x</small></span></label>
+            <label><input type="radio" name="topic" value="word_problems"><span><em class="glyph">Ages · Money</em><strong>Word problems</strong><small>Turn a story into an equation</small></span></label>
+          </div>
+        </fieldset>
+
+        <button type="submit" class="primary big">Start learning →</button>
+      </form>
+    </section>
+
+    <!-- Main screen -->
+    <section id="main-screen" class="main" hidden>
+      <div class="toolbar">
+        <nav class="tabs" role="tablist">
+          <button type="button" class="tab" role="tab" data-mode="learn">Learn</button>
+          <button type="button" class="tab" role="tab" data-mode="practice">Practice</button>
+          <button type="button" class="tab" role="tab" data-mode="quiz">Quiz</button>
+          <button type="button" class="tab" role="tab" data-mode="doubt">Ask a Doubt</button>
+        </nav>
+        <div id="progress" class="progress" aria-live="polite"></div>
+      </div>
+
+      <!-- Learn + Ask a Doubt -->
+      <div id="chat-panel" class="panel chat-panel">
+        <div id="chat" class="chat" aria-live="polite"></div>
+        <form id="chat-form" class="composer">
+          <textarea id="message" rows="1" maxlength="1000"
+                    placeholder="Type your message…"
+                    aria-label="Your message"></textarea>
+          <button id="send" type="submit" class="primary send" aria-label="Send">
+            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2z" fill="currentColor"/></svg>
+          </button>
+        </form>
+      </div>
+
+      <div id="practice-panel" class="panel exercise" hidden></div>
+      <div id="quiz-panel" class="panel exercise" hidden></div>
+    </section>
+
+    <!-- End-of-session report -->
+    <section id="summary-screen" class="exercise" hidden></section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
