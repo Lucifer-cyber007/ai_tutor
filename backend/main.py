@@ -49,3 +49,11 @@ RATE_LIMIT_REQUESTS = 20        # per IP ...
 RATE_LIMIT_WINDOW_SECONDS = 60  # ... per minute
 
 app = FastAPI(title="AI Tutor", docs_url=None, redoc_url=None, openapi_url=None)
+
+
+# ---- Request models (input validation) ----
+def _not_blank(value: str, message: str) -> str:
+    value = value.strip()
+    if not value:
+        raise ValueError(message)
+    return value
