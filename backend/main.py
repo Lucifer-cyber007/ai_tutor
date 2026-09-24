@@ -328,3 +328,10 @@ def summary(req: SummaryRequest):
     result = json_completion(messages, SummaryResult.model_validate, temperature=0.4, max_tokens=2000)
     result.tips = result.tips[:3]
     return result
+
+
+# ---- Local development only: serve the frontend from the same address ----
+# (In production Firebase Hosting serves the frontend; the Docker image has no frontend folder.)
+FRONTEND_DIR = PROJECT_ROOT / "frontend"
+if FRONTEND_DIR.is_dir():
+    app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
