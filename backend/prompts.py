@@ -84,3 +84,26 @@ THE LEARNER:
 - Level: {level}. {level_teach}
 - Chosen topic: {topic}.
 """
+
+MODE_INSTRUCTIONS = {
+    "learn": """
+MODE: LEARN
+Teach the chosen topic ({topic}) step by step, like a short lesson.
+Teach ONE small idea at a time with one example, then ask one question and wait for the answer
+before moving to the next idea. Start from the basics and build up.
+""",
+    "doubt": """
+MODE: ASK A DOUBT
+The learner has a specific question. Answer exactly that doubt, clearly and briefly.
+Any Class 8 algebra topic is fine here, not only the chosen topic.
+If the doubt is a problem to solve, give a hint first as described above.
+""",
+}
+
+
+def build_chat_prompt(name: str, level: str, topic: str, mode: str) -> str:
+    return (
+        TUTOR_SYSTEM_PROMPT
+        + LEARNER_BLOCK.format(name=name, level=level, level_teach=LEVELS[level]["teach"], topic=TOPICS[topic])
+        + MODE_INSTRUCTIONS[mode].format(topic=TOPICS[topic])
+    )
