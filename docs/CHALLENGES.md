@@ -81,3 +81,30 @@
   could not find `\n}\n`. Git Bash's `grep` hid the `\r` characters, so the first check wrongly showed none.
 - **What we changed:** Converted the file back to LF (`sed -i 's/\r$//'`) and now write files with
   `newline="\n"`. Browsers were never affected.
+
+## C10 - Deployment blocked: billing and Firebase need the owner (Phase 4)
+- **What didn't work:** Using the owner service account:
+  - `gcloud services enable run.googleapis.com` -> `UREQ_PROJECT_BILLING_NOT_FOUND`
+  - `firebase projects:addfirebase` -> `403 The caller does not have permission`
+- **How we debugged it:** Checked that the service account really is an Owner
+  (`gcloud projects get-iam-policy`: yes). `gcloud billing accounts list` showed 0 accounts for it.
+- **Cause:** Linking a billing account needs a person who can see that billing account, and adding
+  Firebase needs a person to accept the Firebase terms. A service account can do neither.
+- **What we changed:** The owner does these two steps once in the browser (docs/DEPLOY.md, Step 0).
+  Everything else is automated.
+
+## C11 - The letter x looked like the multiply sign x (redesign)
+- **What didn't work:** In the new heading font (Plus Jakarta Sans), "3x + 5" looked like "3× + 5" in
+  screenshots. That is confusing in an algebra app.
+- **What we changed:** All maths and chat text now uses Atkinson Hyperlegible, a font designed so
+  similar characters look different (x vs ×, 0 vs O). Headings keep Plus Jakarta Sans.
+
+## C12 - Redesign bugs found with automatic screenshots
+- **How we tested:** A headless Edge browser (puppeteer-core) played through the whole app with the real AI and
+  took screenshots at each step (start, learn, practice, quiz, report, phone size).
+- **Found and fixed:**
+  1. On phones the level buttons ran off the screen -> grid columns `minmax(0, 1fr)` and smaller labels.
+  2. The fade-in animation replayed every time a card was redrawn (after every answer) -> it now plays only when a screen first appears.
+  3. On phones "Finish session" wrapped onto 2 lines and the progress chips took 2 rows -> no wrapping; chips scroll sideways.
+  4. The answer feedback said "The learner likely missed the first step" -> the evaluate prompt now says to speak to the learner as "you". Re-tested 3 times: always "You likely missed...".
+- Result: no JavaScript errors, no sideways scrolling at 390 px width.
