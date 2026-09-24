@@ -291,3 +291,95 @@ function questionMeta(label, skill) {
   if (skill) meta.appendChild(el("span", "tag", skill));
   return meta;
 }
+
+// ---------- Practice ----------
+// Hint after the 1st wrong try; full answer after the 2nd wrong try or "Show answer".
+async function loadPractice() {
+  const p = state.practice;
+  showError("");
+  setBusy(true);
+  practicePanel.replaceChildren(loadingCard("Making practice questions for you..."));
+  try {
+    const data = await api("/practice", { profile: state.profile, count: PRACTICE_BATCH });
+    const done = p.number || 0;
+    Object.assign(p, newExercise(), { questions: data.questions, number: done + 1 });
+    renderPractice();
+  } catch (err) {
+    showError(err.message);
+    const card = el("div", "card");
+    card.append(el("p", "", "Could not load questions."), button("Try again", "primary", loadPractice));
+    practicePanel.replaceChildren(card);
+  } finally {
+    setBusy(false);
+  }
+}
+
+function renderPractice() {
+  const p = state.practice;
+  const q = p.questions[p.index];
+  const card = el("div", "card");
+  card.append(
+    questionMeta(`Practice question ${p.number}`, q.skill),
+    el("p", "q-text", q.question),
+    answerForm(p, "Check", checkPractice),
+  );
+  if (p.checking) card.appendChild(loadingLine("Checking your answer..."));
+  else if (p.feedback) card.appendChild(feedbackBox(p.feedback));
+
+  const actions = el("div", "actions");
+  if (p.answered) {
+    actions.appendChild(button("Next question", "primary", nextPractice));
+  } else if (!p.checking) {
+    actions.appendChild(button("Show answer", "secondary", revealPracticeAnswer));
+  }
+  card.appendChild(actions);
+  practicePanel.replaceChildren(card);
+}
+
+async function checkPractice(answer) {
+  const p = state.practice;
+  const q = p.questions[p.index];
+  p.attempts += 1;
+  p.checking = true;
+  showError("");
+  setBusy(true);
+  renderPractice();
+  try {
+    const r = await checkAnswer(q, answer, Math.min(p.attempts, 2));
+    if (r.correct) {
+      p.answered = true;
+      recordResult(q.skill, true);
+      p.feedback = { kind: "good", title: "Correct! Well done.", lines: [r.encouragement, r.explanation] };
+    } else if (p.attempts < 2) {
+      p.feedback = { kind: "try", title: "Not quite. Here's a hint:", lines: [r.hint, r.encouragement] };
+    } else {
+      p.answered = true;
+      recordResult(q.skill, false, r.weak_topic);
+      p.feedback = { kind: "bad", title: `The answer is ${r.correct_answer}`, lines: [r.explanation, r.encouragement] };
+    }
+  } catch (err) {
+    p.attempts -= 1; // the check failed, so this try doesn't count
+    showError(err.message);
+  } finally {
+    p.checking = false;
+    setBusy(false);
+    renderPractice();
+  }
+}
+
+function revealPracticeAnswer() {
+  const p = state.practice;
+  const q = p.questions[p.index];
+  p.answered = true;
+  recordResult(q.skill, false); // gave up = not solved
+  p.feedback = { kind: "info", title: `The answer is ${q.answer}`, lines: [q.solution] };
+  renderPractice();
+}
+
+function nextPractice() {
+  const p = state.practice;
+  if (p.index + 1 >= p.questions.length) return loadPractice();
+  const { questions, index, number } = p;
+  Object.assign(p, newExercise(), { questions, index: index + 1, number: number + 1 });
+  renderPractice();
+}
