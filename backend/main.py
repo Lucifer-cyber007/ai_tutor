@@ -231,3 +231,9 @@ async def handle_ai_error(request: Request, exc: TutorAIError):
 async def handle_unexpected_error(request: Request, exc: Exception):
     log.exception("Unexpected error on %s", request.url.path)
     return JSONResponse(status_code=500, content={"error": "Something went wrong on our side. Please try again."})
+
+
+# ---- Endpoints ----
+@app.get("/api/health")
+def health():
+    return {"status": "ok"}
