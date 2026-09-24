@@ -15,3 +15,11 @@ log = logging.getLogger("ai_tutor")
 
 DEFAULT_MODEL = "openai/gpt-oss-120b"
 T = TypeVar("T")
+
+
+class TutorAIError(Exception):
+    """The AI could not give an answer. The message is safe to show to learners."""
+
+
+class _BadJSON(Exception):
+    """Groq's JSON mode rejected the model output (we retry once)."""
