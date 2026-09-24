@@ -108,3 +108,30 @@
   3. On phones "Finish session" wrapped onto 2 lines and the progress chips took 2 rows -> no wrapping; chips scroll sideways.
   4. The answer feedback said "The learner likely missed the first step" -> the evaluate prompt now says to speak to the learner as "you". Re-tested 3 times: always "You likely missed...".
 - Result: no JavaScript errors, no sideways scrolling at 390 px width.
+
+## C13 - "Cloud billing quota exceeded" (Phase 4)
+- **What didn't work:** `gcloud billing projects link ai-tutor-509612 ...` -> `Cloud billing quota exceeded`.
+- **Cause:** The billing account was already linked to 3 projects, the limit for this account.
+- **What we changed:** The owner chose to host the tutor in an existing billed project
+  (`supple-defender-503708-t7`) as its own separate Cloud Run service, rather than unlinking another project.
+
+## C14 - Cloud Build failed: "disabled service account" (Phase 4)
+- **Error:** `Could not build the function due to disabled service account used by Cloud Build ...
+  539430519324-compute@developer.gserviceaccount.com is active`.
+- **How we debugged it:** `gcloud iam service-accounts describe ... --format="value(disabled)"` -> `True`.
+- **What we changed:** We did not re-enable it (it may be disabled on purpose for the other app). We created
+  `ai-tutor-build` with only 3 roles (log writer, storage object viewer, artifact registry writer) and
+  passed it with `--build-service-account`. The build then succeeded.
+
+## C15 - Firebase CLI would not log in from our terminal (Phase 4)
+- **Error:** `Cannot run "login:add" in non-interactive mode.`
+- **What we changed:** Deployed the frontend with the Firebase Hosting REST API (create version with the
+  `firebase.json` rewrites -> upload gzipped files -> finalize -> release), using the owner's Google login.
+  Later updates can use `firebase deploy` from a normal terminal.
+
+## C16 - Rate limit and spoofed headers on the live site (Phase 4 check)
+- **Worry:** Our limiter reads the first `X-Forwarded-For` value, which a client can fake.
+- **Test:** 23 requests on the live site with a different fake `X-Forwarded-For` each time.
+- **Result:** Still blocked after 20 (429). Firebase Hosting replaces that header with the real client
+  address, so the limit can't be dodged through the public URL. (It is per Cloud Run instance, and we cap
+  instances at 2.) While testing, we even hit our own limit, which is the limiter working.
