@@ -60,3 +60,36 @@ function button(label, className, onClick) {
   b.addEventListener("click", onClick);
   return b;
 }
+
+// ---------- Talking to the backend ----------
+async function api(path, body) {
+  let res;
+  try {
+    res = await fetch(API_BASE + path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    throw new Error("Can't reach the tutor. Check your internet connection and try again.");
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(data.error || `The server had a problem (error ${res.status}). Please try again.`);
+  }
+  return data;
+}
+
+function showError(message) {
+  errorEl.textContent = message;
+  errorEl.hidden = !message;
+}
+
+// While waiting for the AI, lock the tabs and the chat box so the learner can't start two things at once.
+function setBusy(busy) {
+  state.busy = busy;
+  tabs.forEach((t) => (t.disabled = busy));
+  sendBtn.disabled = busy;
+  finishBtn.disabled = busy;
+  inputEl.disabled = busy;
+}
