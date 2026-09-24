@@ -47,3 +47,33 @@ gcloud secrets add-iam-policy-binding groq-api-key \
   --member="serviceAccount:ai-tutor-run@$PROJECT.iam.gserviceaccount.com" \
   --role="roles/secretmanager.secretAccessor"
 ```
+
+## Step 4 - build and deploy the backend
+Cloud Build builds the Dockerfile in the cloud, so Docker is not needed on your PC.
+```bash
+gcloud run deploy ai-tutor-api \
+  --source backend \
+  --region $REGION \
+  --service-account "ai-tutor-run@$PROJECT.iam.gserviceaccount.com" \
+  --set-secrets GROQ_API_KEY=groq-api-key:latest \
+  --set-env-vars GROQ_MODEL=openai/gpt-oss-120b \
+  --allow-unauthenticated \
+  --memory 512Mi --max-instances 2 --concurrency 20
+```
+- `--allow-unauthenticated` is needed because Firebase Hosting calls the service on behalf of the public web page.
+- `--max-instances 2` caps the cost if someone floods the app.
+
+Test it: `curl https://<service-url>/api/health` should return `{"status":"ok"}`.
+
+## Step 5 - deploy the frontend
+```bash
+firebase login              # once, as vedhasingh1815@gmail.com
+firebase deploy --only hosting --project $PROJECT
+```
+(For the first deployment the Firebase CLI could not open a login from a non-interactive terminal,
+so we used the Firebase Hosting REST API with the same `firebase.json` settings. The result is the same.)
+The app is then live at `https://supple-defender-503708-t7.web.app`.
+
+## Updating later
+- Backend code or prompts changed: run Step 4 again.
+- Frontend changed: run Step 5 again.
