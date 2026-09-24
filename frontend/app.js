@@ -144,3 +144,88 @@ function switchMode(mode) {
     renderQuiz();
   }
 }
+
+// ---------- Learn + Ask a Doubt (chat) ----------
+const CHAT_INTROS = {
+  learn: (p) => `Hi ${p.name}! Let's learn ${TOPICS[p.topic].toLowerCase()} together. I'll explain one idea at a time and ask you small questions.`,
+  doubt: (p) => `Hi ${p.name}! Ask me any doubt about Class 8 algebra. For example: "Why does the sign change when a term moves to the other side?"`,
+};
+
+function addBubble(role, text) {
+  const row = el("div", `msg ${role === "user" ? "user" : "tutor"}`);
+  if (role !== "user") row.appendChild(el("div", "avatar", "x"));
+  row.appendChild(el("div", "bubble", text));
+  chatEl.appendChild(row);
+  chatEl.scrollTop = chatEl.scrollHeight;
+  return row;
+}
+
+function addTypingIndicator() {
+  const row = addBubble("tutor", "Thinking");
+  row.classList.add("typing");
+  const dots = el("span", "dots");
+  dots.append(el("span"), el("span"), el("span"));
+  row.lastChild.appendChild(dots);
+  return row;
+}
+
+function renderChat() {
+  chatEl.replaceChildren();
+  addBubble("tutor", CHAT_INTROS[state.mode](state.profile));
+  for (const turn of state.chats[state.mode]) addBubble(turn.role, turn.content);
+}
+
+async function sendChat(text) {
+  const mode = state.mode;
+  const history = state.chats[mode];
+  showError("");
+  addBubble("user", text);
+  setBusy(true);
+  const typing = addTypingIndicator();
+
+  try {
+    const data = await api("/chat", {
+      profile: state.profile,
+      mode,
+      message: text,
+      history: history.slice(-MAX_HISTORY),
+    });
+    history.push({ role: "user", content: text }, { role: "assistant", content: data.reply });
+    addBubble("tutor", data.reply);
+  } catch (err) {
+    showError(err.message);
+    inputEl.value = text; // give the text back so the learner can simply press Send again
+    growInput();
+  } finally {
+    typing.remove();
+    setBusy(false);
+    inputEl.focus();
+  }
+}
+
+chatForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const text = inputEl.value.trim();
+  if (!text) return showError("Please type a message first.");
+  if (text.length > MAX_MESSAGE_CHARS) {
+    return showError(`Your message is too long. Please keep it under ${MAX_MESSAGE_CHARS} characters.`);
+  }
+  inputEl.value = "";
+  growInput();
+  sendChat(text);
+});
+
+// The message box grows with the text (up to a limit set in CSS).
+function growInput() {
+  inputEl.style.height = "auto";
+  inputEl.style.height = `${inputEl.scrollHeight}px`;
+}
+inputEl.addEventListener("input", growInput);
+
+// Enter sends, Shift+Enter makes a new line.
+inputEl.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    chatForm.requestSubmit();
+  }
+});
