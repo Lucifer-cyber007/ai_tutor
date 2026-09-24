@@ -508,3 +508,53 @@ function quizResultsCard() {
   card.append(list, actions);
   return card;
 }
+
+// ---------- Progress (kept in this browser tab only) ----------
+function recordResult(skill, correct, weakTopic = "") {
+  const pr = state.progress;
+  pr.results.push({ skill: (skill || "").trim(), correct });
+  if (!correct && weakTopic) pr.weakTopics.push(weakTopic.trim());
+  renderProgress();
+}
+
+function progressNumbers() {
+  const pr = state.progress;
+  const attempted = pr.results.length;
+  const correct = pr.results.filter((r) => r.correct).length;
+
+  // Group results by skill: strong = 75% or more correct, weak = under 50% correct.
+  const skills = new Map();
+  for (const r of pr.results) {
+    if (!r.skill) continue; // counted in the totals, but no skill name to report
+    const key = r.skill.toLowerCase();
+    const s = skills.get(key) || { name: r.skill, attempted: 0, correct: 0 };
+    s.attempted += 1;
+    if (r.correct) s.correct += 1;
+    skills.set(key, s);
+  }
+  const strong = [];
+  const weak = [];
+  for (const s of skills.values()) {
+    const rate = s.correct / s.attempted;
+    if (rate >= 0.75) strong.push(s.name);
+    else if (rate < 0.5) weak.push(s.name);
+  }
+  // Also add the weak topics the AI noticed when checking wrong answers.
+  for (const topic of pr.weakTopics) {
+    if (!weak.some((w) => w.toLowerCase() === topic.toLowerCase())) weak.push(topic);
+  }
+  return { attempted, correct, strong: strong.slice(0, 5), weak: weak.slice(0, 5), quizScores: pr.quizScores };
+}
+
+function renderProgress() {
+  const n = progressNumbers();
+  const chip = (label, value, className = "chip") => {
+    const c = el("span", className, `${label} `);
+    c.appendChild(el("b", "", String(value)));
+    return c;
+  };
+  const chips = [chip("Questions", n.attempted), chip("Correct", n.correct)];
+  if (n.quizScores.length) chips.push(chip("Quizzes", n.quizScores.map((q) => `${q.score}/${q.total}`).join(", ")));
+  if (n.weak.length) chips.push(chip("Practise:", n.weak.slice(0, 2).join(", "), "chip warn"));
+  progressEl.replaceChildren(...chips);
+}
