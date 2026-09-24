@@ -57,3 +57,25 @@ body {
     overflow: hidden;
   }
 }
+
+/* ---------- Header ---------- */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 24px;
+}
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.header button { flex-shrink: 0; white-space: nowrap; }
+.logo {
+  width: 42px; height: 42px; flex-shrink: 0;
+  display: grid; place-items: center;
+  border-radius: 13px;
+  background: var(--gradient);
+  color: #fff;
+  font-weight: 800; font-size: 1.35rem; font-style: italic;
+  box-shadow: 0 6px 16px rgba(109, 93, 252, 0.35);
+}
+.header h1 { margin: 0; font-size: 1.15rem; font-weight: 800; letter-spacing: -0.01em; }
+.header p { margin: 0; color: var(--muted); font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
