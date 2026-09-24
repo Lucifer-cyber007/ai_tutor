@@ -23,3 +23,9 @@ LEVELS = {
         "questions": "Multi-step: brackets, variables on both sides, fractions. Answers are whole numbers or simple fractions with 2, 3 or 4 on the bottom (like 7/2).",
     },
 }
+
+QUESTION_TOPIC_GUIDE = {
+    "expressions": 'Terms, like terms, adding/subtracting expressions, simplifying, and finding the value of an expression by substituting numbers. Mostly "expression" kind.',
+    "equations": 'Solving linear equations in one variable. Use the "equation" kind.',
+    "word_problems": 'Short real-life word problems (ages, money, perimeter, consecutive numbers) that lead to ONE linear equation and ask for ONE unknown number. Use the "equation" kind.',
+}
