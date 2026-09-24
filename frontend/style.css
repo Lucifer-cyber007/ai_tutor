@@ -1,0 +1,47 @@
+/* AI Tutor - friendly, calm, readable. */
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+:root {
+  --bg: #f5f3ff;
+  --surface: #ffffff;
+  --surface-soft: #f8f7fe;
+  --text: #1e1b3a;
+  --muted: #6b6889;
+  --border: #e7e4f5;
+  --primary: #5b4bdb;
+  --primary-dark: #4636c4;
+  --primary-soft: #efedff;
+  --accent: #ff8a65;
+  --gradient: linear-gradient(135deg, #6d5dfc 0%, #8b5cf6 55%, #c06cf0 100%);
+  --good: #0f8a5f;  --good-bg: #e7f8f0;
+  --try: #a15c00;   --try-bg: #fff4e0;
+  --bad: #c2334d;   --bad-bg: #fdebef;
+  --radius: 18px;
+  /* Maths text: Atkinson Hyperlegible keeps x clearly different from the × sign. */
+  --read: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --shadow: 0 1px 2px rgba(30, 27, 58, 0.04), 0 8px 24px rgba(30, 27, 58, 0.06);
+  --shadow-lg: 0 24px 60px rgba(76, 60, 180, 0.16);
+}
+
+html, body { margin: 0; height: 100%; }
+body {
+  color: var(--text);
+  font-family: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #e4defe 0%, transparent 60%),
+    radial-gradient(900px 500px at 110% 10%, #ffe3d6 0%, transparent 55%),
+    var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  max-width: 860px;
+  height: 100%;
+  height: 100dvh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
