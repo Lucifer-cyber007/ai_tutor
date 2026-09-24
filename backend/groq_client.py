@@ -93,3 +93,25 @@ def _plain_text(text: str) -> str:
     text = re.sub(r"^\s*#{1,6}\s*", "", text, flags=re.MULTILINE)                        # # headings
     text = re.sub(r"^\s*(-{3,}|\*{3,})\s*$", "", text, flags=re.MULTILINE)               # --- lines
     return re.sub(r"\n{3,}", "\n\n", text).strip()
+
+
+def json_completion(
+    messages: list[dict],
+    validate: Callable[[dict], T],
+    temperature: float = 0.3,
+    max_tokens: int = 2000,
+    reasoning: str = "low",
+) -> T:
+    """
+    JSON reply. `validate` turns the parsed JSON into the result, or raises ValueError.
+    If the JSON is invalid or fails validation, retry once, then give a friendly error.
+    """
+    for attempt in (1, 2):
+        try:
+            data = json.loads(_call(messages, temperature, max_tokens, json_mode=True, reasoning=reasoning))
+            if not isinstance(data, dict):
+                raise ValueError("JSON reply is not an object")
+            return validate(data)
+        except (_BadJSON, ValueError) as exc:  # json.JSONDecodeError and pydantic errors are ValueErrors
+            log.warning("Unusable JSON from the model (attempt %d): %s", attempt, exc)
+    raise TutorAIError("The tutor had trouble preparing that. Please try again.")
