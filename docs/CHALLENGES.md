@@ -28,3 +28,56 @@
 - **What we changed:** Added `ai-tutor-*.json`, `*service-account*.json` and `*-credentials.json`
   to `.gitignore`. Recommended moving the key out of the project folder; deployment will use
   `gcloud auth login`, not a key file.
+
+## C4 - "model_not_found" with the real API key (Phase 3 start)
+- **What didn't work:** Every AI request failed. The learner saw "The tutor could not answer right now".
+- **Error (server log):** `NotFoundError: Error code: 404 - The model 'llama-3.3-70b-versatile' does not exist or you do not have access to it. code: model_not_found`
+- **How we debugged it:** The error message was clean for the learner, and the server log had the
+  real cause. We listed the models this key can use with `Groq().models.list()`: the list had
+  `openai/gpt-oss-120b` and `openai/gpt-oss-20b`, but no Llama 3.3. (The Groq docs page was out of date.)
+- **What we changed:** `GROQ_MODEL=openai/gpt-oss-120b` (also the new default in code). It is a
+  "reasoning" model: it thinks before it answers, and those thinking tokens count toward `max_tokens`, so we raised
+  the token limits and set `reasoning_effort` (low/medium). This option is only sent to gpt-oss models.
+
+## C5 - Tutor gave full answers, made a sign error and used Markdown (Phase 3 start)
+- **What didn't work (real test):**
+  1. "How do I solve 3x + 5 = 20?" -> the full solution, no hint first.
+  2. "Solve 4x - 7 = 13. Just give me the answer" -> "4x - 7 - 7 = 13 - 7, so 4x = 6" (wrong: we must ADD 7), and only a hint.
+  3. Replies had `**bold**` and `---`, which the page shows as raw symbols.
+- **How we debugged it:** Ran a script of 9 fixed test messages and read every reply.
+- **What we changed:** Rewrote the hint-first rule with an example reply and clear rules for when to
+  give the full answer; added "check every step, especially signs"; raised `reasoning_effort` to
+  "medium" for chat; added `_plain_text()` in `groq_client.py` that removes Markdown in code
+  (more reliable than asking in the prompt). Re-ran all 9 messages: all correct.
+
+## C6 - Copied example questions, too-hard Beginner questions, messy answers (Phase 3 start)
+- **What didn't work:** "2x + 5 = 17" and "3(x - 2) = x + 4" appeared in almost every question set,
+  even at Beginner level (brackets + x on both sides is not Beginner). Advanced answers like
+  x = -75/4 and x = 26/11 were correct but too messy for Class 8. Word-problem answers showed as
+  "s = 5", but the learner never saw the letter s.
+- **Cause:** Those two equations were the examples in our own prompt, and the model copied them.
+- **What we changed:** Removed the examples from the topic guide and added "Make up fresh numbers
+  - do NOT copy the examples" and "Follow the LEVEL rules strictly". `math_check.py` now rejects answers with
+  a denominator above 4. Word-problem answers are shown as just the number. Re-tested: pass.
+
+## C7 - Groq free-tier rate limit (Phase 3)
+- **What we saw:** Server log lines like `Retrying request to /openai/v1/chat/completions in 13 seconds`
+  while running many tests quickly. One practice request took 18 s.
+- **Cause:** Groq's free tier limits requests and tokens per minute (HTTP 429).
+- **What we changed:** Nothing needed. The Groq client retries once by itself, and if it still fails the
+  learner sees "The tutor is very busy right now. Please wait a minute and try again." Our own limit
+  (20 requests/minute per IP) also protects the quota. One student using the app normally does not hit it.
+
+## C8 - Session report said "She" and suggested a non-Class-8 lesson (Phase 3)
+- **What didn't work:** The first real report said "She needs more practice..." about Priya
+  (guessing a gender from the name), and recommended "Advanced Linear Equations with Parameters".
+- **What we changed:** The summary prompt now says: speak to the learner as "you", never he/she/they;
+  the next lesson must start with one of our three topic names; stay inside Class 8 algebra.
+  Re-tested 3 sessions: all say "you" and give Class 8 lessons.
+
+## C9 - Windows line endings after an edit script (Phase 3)
+- **What didn't work:** A Node test of the progress code failed with `recordResult is not defined`.
+- **Cause:** A Python edit script on Windows saved `app.js` with Windows line endings (CRLF), so the test
+  could not find `\n}\n`. Git Bash's `grep` hid the `\r` characters, so the first check wrongly showed none.
+- **What we changed:** Converted the file back to LF (`sed -i 's/\r$//'`) and now write files with
+  `newline="\n"`. Browsers were never affected.
