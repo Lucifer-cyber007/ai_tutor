@@ -246,3 +246,33 @@ def chat(req: ChatRequest):
     messages += [turn.model_dump() for turn in req.history]
     messages.append({"role": "user", "content": req.message})
     return {"reply": chat_completion(messages)}
+
+
+@app.post("/api/practice")
+def practice(req: PracticeRequest):
+    p = req.profile
+    messages = [
+        {"role": "system", "content": build_practice_prompt(p.level, p.topic, req.count + EXTRA_QUESTIONS)},
+        {"role": "user", "content": "Write the questions now."},
+    ]
+
+    def keep_verified(data: dict) -> list[dict]:
+        items = data.get("questions")
+        if not isinstance(items, list):
+            raise ValueError('JSON has no "questions" list')
+        verified = []
+        for item in items:
+            try:
+                q = GeneratedQuestion.model_validate(item)
+                answer = verify_question(q.kind, q.math, q.answer)
+                if p.topic == "word_problems":
+                    answer = answer.split("=")[-1].strip()  # learner never saw the letter, so show "5" not "s = 5"
+            except (ValidationError, ValueError) as exc:
+                log.warning("Dropped a generated question: %s | %s", exc, item)
+                continue
+            verified.append({"question": q.question, "skill": q.skill, "answer": answer, "solution": q.solution})
+            if len(verified) == req.count:
+                return verified
+        raise ValueError(f"only {len(verified)} of {req.count} questions passed the maths check")
+
+    return {"questions": json_completion(messages, keep_verified, temperature=0.8, max_tokens=5000, reasoning="medium")}
