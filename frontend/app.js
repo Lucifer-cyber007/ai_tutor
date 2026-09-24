@@ -229,3 +229,65 @@ inputEl.addEventListener("keydown", (event) => {
     chatForm.requestSubmit();
   }
 });
+
+// ---------- Shared pieces for Practice and Quiz ----------
+function answerForm(ex, label, onSubmit) {
+  const form = el("form", "answer-form");
+  const input = el("input");
+  input.type = "text";
+  input.maxLength = 200;
+  input.placeholder = "Your answer, e.g. x = 4";
+  input.setAttribute("aria-label", "Your answer");
+  input.value = ex.lastAnswer;
+  const submit = el("button", "primary", label);
+  submit.type = "submit";
+  input.disabled = submit.disabled = ex.answered || ex.checking;
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const answer = input.value.trim();
+    if (!answer) return showError("Please type your answer first.");
+    ex.lastAnswer = answer;
+    onSubmit(answer);
+  });
+  form.append(input, submit);
+  if (!input.disabled) setTimeout(() => input.focus(), 0);
+  return form;
+}
+
+function feedbackBox(fb) {
+  const box = el("div", `feedback ${fb.kind}`);
+  box.appendChild(el("strong", "", fb.title));
+  for (const line of fb.lines) if (line) box.appendChild(el("div", "", line));
+  return box;
+}
+
+function checkAnswer(q, answer, attempt) {
+  return api("/evaluate", {
+    profile: state.profile,
+    question: q.question,
+    correct_answer: q.answer,
+    learner_answer: answer,
+    skill: q.skill,
+    attempt,
+  });
+}
+
+function loadingLine(text) {
+  const line = el("p", "loading");
+  line.append(el("span", "spinner"), text);
+  return line;
+}
+
+function loadingCard(text) {
+  const card = el("div", "card");
+  card.appendChild(loadingLine(text));
+  return card;
+}
+
+function questionMeta(label, skill) {
+  const meta = el("div", "q-meta");
+  meta.appendChild(el("span", "", label));
+  if (skill) meta.appendChild(el("span", "tag", skill));
+  return meta;
+}
