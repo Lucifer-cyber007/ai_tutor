@@ -306,3 +306,25 @@ def evaluate(req: EvaluateRequest):
     elif not result.weak_topic:
         result.weak_topic = req.skill
     return result
+
+
+@app.post("/api/summary")
+def summary(req: SummaryRequest):
+    p = req.profile
+    accuracy = f"{round(100 * req.correct / req.attempted)}%" if req.attempted else "no questions answered"
+    quizzes = ", ".join(f"{q.score}/{q.total}" for q in req.quiz_scores) or "no quiz taken"
+    messages = [
+        {"role": "system", "content": build_summary_prompt(p.name, p.level, p.topic)},
+        {"role": "user", "content": SUMMARY_USER_TEMPLATE.format(
+            attempted=req.attempted,
+            correct=req.correct,
+            accuracy=accuracy,
+            quizzes=quizzes,
+            strong=", ".join(req.strong_areas) or "none yet",
+            weak=", ".join(req.weak_areas) or "none",
+            chat_messages=req.chat_messages,
+        )},
+    ]
+    result = json_completion(messages, SummaryResult.model_validate, temperature=0.4, max_tokens=2000)
+    result.tips = result.tips[:3]
+    return result
