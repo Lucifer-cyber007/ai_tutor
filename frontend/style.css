@@ -384,3 +384,10 @@ input[type="text"]:focus, textarea:focus { outline: none; border-color: var(--pr
 .next h3 { opacity: 0.85; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; }
 .next .title { font-weight: 800; font-size: 1.15rem; margin: 6px 0 4px; }
 .next p { opacity: 0.92; }
+
+/* Everything the learner reads or types as maths uses the hyper-legible font. */
+.bubble, .q-text, .feedback, .review, .answer-form input, .composer textarea, #summary-screen p, #summary-screen li {
+  font-family: var(--read);
+  font-size: 1.04rem;
+}
+.q-text { font-size: 1.25rem; font-weight: 700; }
