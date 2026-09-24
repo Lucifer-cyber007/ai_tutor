@@ -46,3 +46,11 @@ def _parse(text: str):
         return parse_expr(text, local_dict=symbols, transformations=_TRANSFORMS)
     except Exception as exc:  # sympy raises many error types for bad input
         raise ValueError(f"could not parse {text!r}: {exc}") from exc
+
+
+def _strip_value(text: str) -> str:
+    """'x = 12 years' -> '12'"""
+    text = _clean(text)
+    text = re.sub(r"^[a-z]\s*=\s*", "", text)          # leading "x ="
+    text = re.sub(r"\s+[a-z]{2,}\.?$", "", text)         # trailing unit word
+    return text
