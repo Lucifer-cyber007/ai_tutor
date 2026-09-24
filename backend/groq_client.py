@@ -23,3 +23,17 @@ class TutorAIError(Exception):
 
 class _BadJSON(Exception):
     """Groq's JSON mode rejected the model output (we retry once)."""
+
+
+_client = None
+
+
+def _get_client() -> Groq:
+    global _client
+    if _client is None:
+        api_key = os.getenv("GROQ_API_KEY", "").strip()
+        if not api_key:
+            log.error("GROQ_API_KEY is not set")
+            raise TutorAIError("The tutor is not set up yet. Please try again later.")
+        _client = Groq(api_key=api_key, timeout=30.0, max_retries=1)
+    return _client
