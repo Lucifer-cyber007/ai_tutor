@@ -54,3 +54,37 @@ def _strip_value(text: str) -> str:
     text = re.sub(r"^[a-z]\s*=\s*", "", text)          # leading "x ="
     text = re.sub(r"\s+[a-z]{2,}\.?$", "", text)         # trailing unit word
     return text
+
+
+def verify_question(kind: str, math: str, answer: str) -> str:
+    """
+    Re-solve an AI-generated question. Returns the verified answer to show the learner.
+    Raises ValueError if the maths can't be checked or the AI's answer is wrong.
+    """
+    if kind == "equation":
+        if math.count("=") != 1:
+            raise ValueError("equation must have exactly one '='")
+        left, right = math.split("=")
+        lhs, rhs = _parse(left), _parse(right)
+        variables = (lhs - rhs).free_symbols
+        if len(variables) != 1:
+            raise ValueError("equation must have exactly one variable")
+        var = variables.pop()
+        if Poly(lhs - rhs, var).degree() != 1:
+            raise ValueError("equation is not linear")
+        solutions = solve(Eq(lhs, rhs), var)
+        if len(solutions) != 1:
+            raise ValueError("equation does not have exactly one solution")
+        given = _parse(_strip_value(answer))
+        if simplify(solutions[0] - given) != 0:
+            raise ValueError(f"AI answer {answer!r} is wrong; correct is {solutions[0]}")
+        if not solutions[0].is_rational or solutions[0].q > MAX_DENOMINATOR:
+            raise ValueError(f"answer {solutions[0]} is too messy for Class 8")
+        return f"{var} = {solutions[0]}"
+
+    if kind == "expression":
+        if simplify(_parse(math) - _parse(answer)) != 0:
+            raise ValueError(f"AI answer {answer!r} is not equal to {math!r}")
+        return answer.strip()
+
+    raise ValueError(f"unknown question kind {kind!r}")
