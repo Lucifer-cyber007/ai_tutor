@@ -37,3 +37,15 @@ load_dotenv(PROJECT_ROOT / ".env")  # local only; on Cloud Run the env vars are 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("ai_tutor")
+
+# ---- Limits ----
+MAX_MESSAGE_CHARS = 1000        # one learner message
+MAX_HISTORY_TURNS = 20          # past messages sent back by the browser
+MAX_HISTORY_CHARS = 4000        # one past message (tutor replies can be long)
+MAX_ANSWER_CHARS = 200          # one practice/quiz answer
+MAX_QUESTIONS = 5               # questions per /practice request
+EXTRA_QUESTIONS = 2             # ask the AI for a few extra, in case some fail the maths check
+RATE_LIMIT_REQUESTS = 20        # per IP ...
+RATE_LIMIT_WINDOW_SECONDS = 60  # ... per minute
+
+app = FastAPI(title="AI Tutor", docs_url=None, redoc_url=None, openapi_url=None)
