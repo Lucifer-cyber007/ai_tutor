@@ -57,3 +57,18 @@ def _not_blank(value: str, message: str) -> str:
     if not value:
         raise ValueError(message)
     return value
+
+
+class Profile(BaseModel):
+    name: str = Field(max_length=40)
+    level: Literal[tuple(LEVELS)]
+    topic: Literal[tuple(TOPICS)]
+
+    @field_validator("name")
+    @classmethod
+    def name_is_letters(cls, value: str) -> str:
+        value = _not_blank(value, "Please enter your name.")
+        # Letters in any language, plus space . ' -   (also keeps prompt injection out of the name)
+        if not all(unicodedata.category(ch)[0] in "LM" or ch in " .'-" for ch in value):
+            raise ValueError("Please use only letters in your name.")
+        return value
