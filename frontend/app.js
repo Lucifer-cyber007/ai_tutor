@@ -655,3 +655,11 @@ function areaList(title, items, emptyText) {
   }
   return box;
 }
+
+function progressBar(fraction) {
+  const bar = el("div", "bar");
+  const fill = el("span");
+  fill.style.width = `${Math.round(fraction * 100)}%`;
+  bar.appendChild(fill);
+  return bar;
+}
