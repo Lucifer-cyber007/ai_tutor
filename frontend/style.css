@@ -129,3 +129,14 @@ input[type="text"]:focus, textarea:focus { outline: none; border-color: var(--pr
   border: 1px solid #f7c9d3;
   animation: pop 0.2s ease;
 }
+
+/* ---------- Cards ---------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+/* Fade in only when a screen first appears (cards are redrawn after every answer). */
+.start-card, #summary-screen .card { animation: rise 0.25s ease both; }
