@@ -23,3 +23,27 @@ Google only lets a person (not a service account) link billing and add Firebase.
 2. **Add Firebase to the project:** https://console.firebase.google.com -> "Create a project" ->
    "Add Firebase to Google Cloud project" -> choose `supple-defender-503708-t7` -> accept the terms
    (Google Analytics is not needed).
+
+## Step 1 - turn on the APIs
+```bash
+PROJECT=supple-defender-503708-t7
+REGION=asia-south1
+gcloud config set project $PROJECT
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com \
+  artifactregistry.googleapis.com secretmanager.googleapis.com
+```
+
+## Step 2 - put the Groq key in Secret Manager (read from .env, never printed)
+```bash
+grep '^GROQ_API_KEY=' .env | cut -d= -f2- | tr -d '\r\n' | \
+  gcloud secrets create groq-api-key --data-file=-
+```
+To change the key later: the same command with `gcloud secrets versions add groq-api-key --data-file=-`.
+
+## Step 3 - a service account for Cloud Run that can only read this secret
+```bash
+gcloud iam service-accounts create ai-tutor-run --display-name="AI Tutor Cloud Run"
+gcloud secrets add-iam-policy-binding groq-api-key \
+  --member="serviceAccount:ai-tutor-run@$PROJECT.iam.gserviceaccount.com" \
+  --role="roles/secretmanager.secretAccessor"
+```
