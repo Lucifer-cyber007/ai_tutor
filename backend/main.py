@@ -196,3 +196,27 @@ async def rate_limit(request: Request, call_next):
             )
         hits.append(now)
     return await call_next(request)
+
+
+# ---- Clean error responses (never raw stack traces) ----
+@app.exception_handler(RequestValidationError)
+async def handle_validation_error(request: Request, exc: RequestValidationError):
+    first = exc.errors()[0] if exc.errors() else {}
+    field = ".".join(str(part) for part in first.get("loc", []) if part != "body")
+    error_type = first.get("type", "")
+
+    if error_type == "json_invalid":
+        message = "The request was not valid JSON."
+    elif field == "message" and error_type == "string_too_long":
+        message = f"Your message is too long. Please keep it under {MAX_MESSAGE_CHARS} characters."
+    elif field == "learner_answer" and error_type == "string_too_long":
+        message = f"Your answer is too long. Please keep it under {MAX_ANSWER_CHARS} characters."
+    elif field == "profile.name" and error_type == "string_too_long":
+        message = "Your name is too long. Please use at most 40 characters."
+    elif error_type == "value_error":  # our own friendly messages from the validators
+        message = str(first.get("msg", "")).removeprefix("Value error, ")
+    elif field == "history" and error_type == "too_long":
+        message = "The chat history is too long. Please refresh the page to start again."
+    else:
+        message = f"Invalid request ({field or 'body'}): {first.get('msg', 'bad input')}"
+    return JSONResponse(status_code=400, content={"error": message})
