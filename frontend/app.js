@@ -558,3 +558,100 @@ function renderProgress() {
   if (n.weak.length) chips.push(chip("Practise:", n.weak.slice(0, 2).join(", "), "chip warn"));
   progressEl.replaceChildren(...chips);
 }
+
+// ---------- Finish session: report + next lesson ----------
+finishBtn.addEventListener("click", finishSession);
+
+async function finishSession() {
+  if (state.busy) return;
+  const n = progressNumbers();
+  showError("");
+  mainScreen.hidden = true;
+  finishBtn.hidden = true;
+  summaryScreen.hidden = false;
+  summaryScreen.replaceChildren(loadingCard("Preparing your session report..."));
+  setBusy(true);
+  try {
+    const report = await api("/summary", {
+      profile: state.profile,
+      attempted: n.attempted,
+      correct: n.correct,
+      quiz_scores: n.quizScores.slice(-50),
+      strong_areas: n.strong,
+      weak_areas: n.weak,
+      chat_messages: [...state.chats.learn, ...state.chats.doubt].filter((t) => t.role === "user").length,
+    });
+    summaryScreen.replaceChildren(summaryCard(n, report));
+  } catch (err) {
+    showError(err.message);
+    const card = el("div", "card");
+    card.appendChild(el("p", "", "Could not prepare the report."));
+    const actions = el("div", "actions");
+    actions.append(button("Try again", "primary", finishSession), button("Back to session", "secondary", backToSession));
+    card.appendChild(actions);
+    summaryScreen.replaceChildren(card);
+  } finally {
+    setBusy(false);
+  }
+}
+
+function backToSession() {
+  showError("");
+  summaryScreen.hidden = true;
+  mainScreen.hidden = false;
+  finishBtn.hidden = false;
+}
+
+function summaryCard(n, report) {
+  const accuracy = n.attempted ? `${Math.round((100 * n.correct) / n.attempted)}%` : "–";
+  const quizzes = n.quizScores.length ? n.quizScores.map((q) => `${q.score}/${q.total}`).join(", ") : "–";
+
+  const stats = el("div", "stats");
+  for (const [value, label] of [[n.attempted, "Questions answered"], [n.correct, "Correct"], [accuracy, "Accuracy"], [quizzes, "Quiz scores"]]) {
+    const stat = el("div", "stat");
+    stat.append(el("div", "value", String(value)), el("div", "label", label));
+    stats.appendChild(stat);
+  }
+
+  const areas = el("div", "areas");
+  areas.append(
+    areaList("Strong areas", n.strong, "Answer more questions to find your strengths."),
+    areaList("Needs practice", n.weak, "Nothing yet. Great work!"),
+  );
+
+  const next = el("div", "next");
+  next.append(
+    el("h3", "", "Recommended next lesson"),
+    el("div", "title", `${report.next_lesson.title} (${report.next_lesson.level})`),
+    el("p", "", report.next_lesson.reason),
+  );
+
+  const card = el("div", "card");
+  card.append(el("h2", "", `Session report for ${state.profile.name}`), stats, el("p", "", report.summary), areas, next);
+  if (report.tips.length) {
+    const tips = el("div", "tips");
+    const list = el("ul");
+    report.tips.forEach((tip) => list.appendChild(el("li", "", tip)));
+    tips.append(el("h3", "", "Tips"), list);
+    card.appendChild(tips);
+  }
+  if (report.encouragement) card.appendChild(el("p", "", report.encouragement));
+
+  const actions = el("div", "actions");
+  actions.append(button("Start a new session", "primary", () => location.reload()), button("Back to session", "secondary", backToSession));
+  card.appendChild(actions);
+  return card;
+}
+
+function areaList(title, items, emptyText) {
+  const box = el("div");
+  box.appendChild(el("h3", "", title));
+  if (!items.length) {
+    box.appendChild(el("p", "q-meta", emptyText));
+  } else {
+    const list = el("ul");
+    items.forEach((item) => list.appendChild(el("li", "", item)));
+    box.appendChild(list);
+  }
+  return box;
+}
