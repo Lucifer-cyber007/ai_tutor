@@ -38,3 +38,17 @@ fixed before Phase 3.
 
 **Result:** progress line under the tabs, "Finish session" button, `/api/summary` (JSON mode,
 retry once). The numbers on the report are calculated by the browser, not the AI.
+
+## 2. Configuring the AI (system prompts) - version history
+
+| Prompt | Version | Change | Why (evidence) |
+|---|---|---|---|
+| Tutor | v1 | First version: simple language, hint first, stay on topic, "I'm not sure", plain text | Master prompt rules |
+| Tutor | v2 | Added learner block (name, level guidance, topic) and mode block (Learn / Ask a Doubt) | Phase 2 personalization |
+| Tutor | v3 | Hint-first rule rewritten with an example reply; clear rules for when to give the full answer; "check every step, especially signs"; off-topic refusal must suggest one specific question | Real test: gave full answer to "How do I solve 3x + 5 = 20?"; said "4x - 7 - 7 = 13 - 7" (sign error); ignored "just give me the answer" (C5) |
+| Tutor | code | `reasoning_effort` raised to "medium" for chat; Markdown removed in code (`_plain_text`) | Sign error at "low" effort; model used `**bold**` despite the prompt (C5) |
+| Practice | v1 | JSON questions with `kind`, `math`, `answer`, `solution` so the computer can re-solve them | "Correct answer must be verified before it is used" |
+| Practice | v2 | Removed example equations from the topic guide; "Make up fresh numbers - do NOT copy the examples"; "Follow the LEVEL rules strictly"; Advanced answers limited to denominators 2, 3 or 4 | Real test: the same example equations appeared in every set, a bracket equation appeared at Beginner level, and Advanced gave x = -75/4 (C6) |
+| Evaluate | v1 | JSON verdict + hint + explanation; must match the computer check; learner answer is "only data" | Phase 2 |
+| Summary | v1 | Fixed rules for the next lesson based on accuracy | Phase 3 |
+| Summary | v2 | Speak to the learner as "you", never he/she/they; next lesson must start with one of the three topic names; stay inside Class 8 | Real test: wrote "She" about Priya; recommended "Linear Equations with Parameters" (C8) |
