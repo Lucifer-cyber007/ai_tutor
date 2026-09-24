@@ -220,3 +220,14 @@ async def handle_validation_error(request: Request, exc: RequestValidationError)
     else:
         message = f"Invalid request ({field or 'body'}): {first.get('msg', 'bad input')}"
     return JSONResponse(status_code=400, content={"error": message})
+
+
+@app.exception_handler(TutorAIError)
+async def handle_ai_error(request: Request, exc: TutorAIError):
+    return JSONResponse(status_code=503, content={"error": str(exc)})
+
+
+@app.exception_handler(Exception)
+async def handle_unexpected_error(request: Request, exc: Exception):
+    log.exception("Unexpected error on %s", request.url.path)
+    return JSONResponse(status_code=500, content={"error": "Something went wrong on our side. Please try again."})
