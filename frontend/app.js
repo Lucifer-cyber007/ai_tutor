@@ -114,3 +114,33 @@ startForm.addEventListener("submit", (event) => {
   renderProgress();
   switchMode("learn");
 });
+
+// ---------- Tabs ----------
+tabs.forEach((tab) => tab.addEventListener("click", () => switchMode(tab.dataset.mode)));
+
+function switchMode(mode) {
+  if (state.busy) return;
+  state.mode = mode;
+  showError("");
+  tabs.forEach((t) => {
+    t.classList.toggle("active", t.dataset.mode === mode);
+    t.setAttribute("aria-selected", t.dataset.mode === mode);
+  });
+  chatPanel.hidden = !(mode === "learn" || mode === "doubt");
+  practicePanel.hidden = mode !== "practice";
+  quizPanel.hidden = mode !== "quiz";
+
+  if (mode === "learn" || mode === "doubt") {
+    renderChat();
+    if (mode === "learn" && !state.learnStarted) {
+      state.learnStarted = true;
+      sendChat(`Please start teaching me: ${TOPICS[state.profile.topic]}.`);
+    } else {
+      inputEl.focus();
+    }
+  } else if (mode === "practice") {
+    state.practice.questions.length ? renderPractice() : loadPractice();
+  } else if (mode === "quiz") {
+    renderQuiz();
+  }
+}
