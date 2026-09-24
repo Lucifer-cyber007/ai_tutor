@@ -276,3 +276,33 @@ def practice(req: PracticeRequest):
         raise ValueError(f"only {len(verified)} of {req.count} questions passed the maths check")
 
     return {"questions": json_completion(messages, keep_verified, temperature=0.8, max_tokens=5000, reasoning="medium")}
+
+
+@app.post("/api/evaluate")
+def evaluate(req: EvaluateRequest):
+    p = req.profile
+    # Numeric answers are marked by the computer, not the AI.
+    checked = compare_numeric(req.correct_answer, req.learner_answer)
+    computer_check = "not available" if checked is None else ("CORRECT" if checked else "INCORRECT")
+
+    messages = [
+        {"role": "system", "content": build_evaluate_prompt(p.name, p.level)},
+        {"role": "user", "content": EVALUATE_USER_TEMPLATE.format(
+            question=req.question,
+            skill=req.skill or "not given",
+            correct_answer=req.correct_answer,
+            learner_answer=req.learner_answer,
+            attempt=req.attempt,
+            computer_check=computer_check,
+        )},
+    ]
+    result = json_completion(messages, EvaluateResult.model_validate, temperature=0.2, max_tokens=2000)
+
+    if checked is not None:
+        result.correct = checked
+    result.correct_answer = req.correct_answer
+    if result.correct:
+        result.weak_topic = ""
+    elif not result.weak_topic:
+        result.weak_topic = req.skill
+    return result
