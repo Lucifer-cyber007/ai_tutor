@@ -80,3 +80,8 @@ def _call(
         log.error("Groq returned an empty reply")
         raise TutorAIError("The tutor gave an empty answer. Please try asking again.")
     return text
+
+
+def chat_completion(messages: list[dict], temperature: float = 0.4, max_tokens: int = 3000) -> str:
+    """Normal text reply (tutor chat). max_tokens includes the model's hidden reasoning."""
+    return _plain_text(_call(messages, temperature, max_tokens, reasoning="medium"))
