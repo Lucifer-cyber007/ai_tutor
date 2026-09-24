@@ -88,3 +88,18 @@ def verify_question(kind: str, math: str, answer: str) -> str:
         return answer.strip()
 
     raise ValueError(f"unknown question kind {kind!r}")
+
+
+def compare_numeric(correct_answer: str, learner_answer: str) -> bool | None:
+    """
+    True/False if both answers are plain numbers (e.g. "x = 7/2" vs "3.5").
+    None if we can't decide by computer (e.g. the answer is an expression like "2a + b").
+    """
+    try:
+        correct = _parse(_strip_value(correct_answer))
+    except ValueError:
+        return None
+    learner = _learner_number(learner_answer)
+    if learner is None or not correct.is_number:
+        return None
+    return bool(simplify(correct - learner) == 0)
