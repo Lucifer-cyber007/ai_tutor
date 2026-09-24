@@ -89,3 +89,81 @@ class ChatRequest(BaseModel):
     @classmethod
     def message_not_blank(cls, value: str) -> str:
         return _not_blank(value, "Please type a message first.")
+
+
+class PracticeRequest(BaseModel):
+    profile: Profile
+    count: int = Field(default=3, ge=1, le=MAX_QUESTIONS)
+
+
+class EvaluateRequest(BaseModel):
+    profile: Profile
+    question: str = Field(min_length=1, max_length=600)
+    correct_answer: str = Field(min_length=1, max_length=MAX_ANSWER_CHARS)
+    learner_answer: str = Field(max_length=MAX_ANSWER_CHARS)
+    skill: str = Field(default="", max_length=100)
+    attempt: Literal[1, 2] = 1  # 2 = final try (show the full answer)
+
+    @field_validator("learner_answer")
+    @classmethod
+    def answer_not_blank(cls, value: str) -> str:
+        return _not_blank(value, "Please type your answer first.")
+
+
+class QuizScore(BaseModel):
+    score: int = Field(ge=0, le=MAX_QUESTIONS)
+    total: int = Field(ge=1, le=MAX_QUESTIONS)
+
+
+class SummaryRequest(BaseModel):
+    profile: Profile
+    attempted: int = Field(ge=0, le=1000)
+    correct: int = Field(ge=0, le=1000)
+    quiz_scores: list[QuizScore] = Field(default_factory=list, max_length=50)
+    strong_areas: list[str] = Field(default_factory=list, max_length=10)
+    weak_areas: list[str] = Field(default_factory=list, max_length=10)
+    chat_messages: int = Field(default=0, ge=0, le=1000)
+
+    @field_validator("strong_areas", "weak_areas")
+    @classmethod
+    def short_names(cls, names: list[str]) -> list[str]:
+        return [name.strip()[:100] for name in names if name.strip()]
+
+    @field_validator("correct")
+    @classmethod
+    def correct_not_more_than_attempted(cls, value: int, info) -> int:
+        if value > info.data.get("attempted", value):
+            raise ValueError("Correct answers can't be more than questions answered.")
+        return value
+
+
+# ---- Shapes we expect from the AI (JSON mode) ----
+class GeneratedQuestion(BaseModel):
+    question: str = Field(min_length=1)
+    skill: str = ""
+    kind: Literal["equation", "expression"]
+    math: str
+    answer: str
+    solution: str = ""
+
+
+class EvaluateResult(BaseModel):
+    correct: bool
+    explanation: str = ""
+    correct_answer: str = ""
+    hint: str = ""
+    encouragement: str = ""
+    weak_topic: str = ""
+
+
+class NextLesson(BaseModel):
+    title: str = Field(min_length=1)
+    level: Literal[tuple(LEVELS)]
+    reason: str = ""
+
+
+class SummaryResult(BaseModel):
+    summary: str = Field(min_length=1)
+    next_lesson: NextLesson
+    tips: list[str] = Field(default_factory=list)
+    encouragement: str = ""
