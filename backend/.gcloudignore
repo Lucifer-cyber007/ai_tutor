@@ -1,0 +1,5 @@
+# Files NOT uploaded to Cloud Build
+__pycache__/
+*.pyc
+.env
+*.json
