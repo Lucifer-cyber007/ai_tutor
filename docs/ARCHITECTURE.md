@@ -39,3 +39,12 @@ Live: https://supple-defender-503708-t7.web.app (Firebase Hosting) -> Cloud Run 
 - **Secret key only on the server:** the frontend never sees the Groq key.
 - **Local development:** FastAPI also serves the `frontend/` folder at `http://localhost:8000`,
   so the page and `/api` share one address, just like Firebase + Cloud Run in production.
+
+## Endpoints (status)
+| Endpoint | Purpose | Phase |
+|---|---|---|
+| GET  /api/health | Is the server up? | 1 (done) |
+| POST /api/chat | Learn mode / Ask a doubt | 1-2 (done) |
+| POST /api/practice | Generate verified questions (JSON) - Practice and Quiz | 2 (done) |
+| POST /api/evaluate | Check an answer (JSON) | 2 (done) |
+| POST /api/summary | Session report + next lesson (JSON) | 3 (done) |
