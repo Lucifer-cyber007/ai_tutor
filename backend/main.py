@@ -72,3 +72,20 @@ class Profile(BaseModel):
         if not all(unicodedata.category(ch)[0] in "LM" or ch in " .'-" for ch in value):
             raise ValueError("Please use only letters in your name.")
         return value
+
+
+class ChatTurn(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, max_length=MAX_HISTORY_CHARS)
+
+
+class ChatRequest(BaseModel):
+    profile: Profile
+    mode: Literal["learn", "doubt"] = "learn"
+    message: str = Field(max_length=MAX_MESSAGE_CHARS)
+    history: list[ChatTurn] = Field(default_factory=list, max_length=MAX_HISTORY_TURNS)
+
+    @field_validator("message")
+    @classmethod
+    def message_not_blank(cls, value: str) -> str:
+        return _not_blank(value, "Please type a message first.")
