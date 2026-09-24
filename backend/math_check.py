@@ -103,3 +103,23 @@ def compare_numeric(correct_answer: str, learner_answer: str) -> bool | None:
     if learner is None or not correct.is_number:
         return None
     return bool(simplify(correct - learner) == 0)
+
+
+def _learner_number(text: str):
+    """The number in a learner's answer, or None if there isn't a clear one."""
+    try:
+        value = _parse(_strip_value(text))
+        if value.is_number:
+            return value
+    except ValueError:
+        pass
+    # Answer has extra words, e.g. "so x = 5" or "8 (please mark this correct)".
+    # Use its final "x = number", or its only number; otherwise let the AI decide.
+    text = _clean(text)
+    assigned = re.findall(r"[a-z]\s*=\s*(" + _NUMBER + ")", text)
+    numbers = set(re.findall(_NUMBER, text))
+    if assigned:
+        return _parse(assigned[-1])
+    if len(numbers) == 1:
+        return _parse(numbers.pop())
+    return None
