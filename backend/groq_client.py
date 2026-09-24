@@ -85,3 +85,11 @@ def _call(
 def chat_completion(messages: list[dict], temperature: float = 0.4, max_tokens: int = 3000) -> str:
     """Normal text reply (tutor chat). max_tokens includes the model's hidden reasoning."""
     return _plain_text(_call(messages, temperature, max_tokens, reasoning="medium"))
+
+
+def _plain_text(text: str) -> str:
+    """The page shows plain text, so remove Markdown symbols the model sometimes adds anyway."""
+    text = re.sub(r"\*\*(.+?)\*\*|__(.+?)__", lambda m: m.group(1) or m.group(2), text)  # **bold**
+    text = re.sub(r"^\s*#{1,6}\s*", "", text, flags=re.MULTILINE)                        # # headings
+    text = re.sub(r"^\s*(-{3,}|\*{3,})\s*$", "", text, flags=re.MULTILINE)               # --- lines
+    return re.sub(r"\n{3,}", "\n\n", text).strip()
