@@ -70,3 +70,17 @@ Tests marked "(fake AI)" replace Groq with fixed replies, so we can test our own
 | 45 | Strong/weak logic in the browser (8 results, mixed skills, duplicate weak topics, missing skill name) | 75%+ strong, under 50% weak, 50-74% neither, no duplicates | attempted 8, correct 4, weak = [Variables on both sides, inverse operations, moving terms...], strong = [] (the 67% and 50% skills are neither) | Pass |
 | 46 | Numbers on the report | Come from the browser, not the AI | Report tiles use the browser counts; AI only writes the text | Pass (code check) |
 | 47 | Full flow in the browser: practice + quiz, then Finish session, Back to session, Start a new session | Progress line updates; report shows; buttons work | | Pending (manual browser test) |
+
+## Phase 4 - Live deployment (https://supple-defender-503708-t7.web.app)
+
+| No. | User Action | Expected Result | Actual Result | Status |
+|---|---|---|---|---|
+| 48 | Open the live site | Page loads | 200, "AI Tutor - Class 8 Algebra" | Pass |
+| 49 | `GET /api/health` through Firebase | Reaches Cloud Run | `{"status":"ok"}` | Pass |
+| 50 | Ask a doubt on the live backend | Real AI reply, hint first | "Hint: What number..." (Groq key read from Secret Manager) | Pass |
+| 51 | Practice questions through Firebase | Verified questions | 3x + 4 = 19 -> x = 5; 7 - 2y = 1 -> y = 3 | Pass |
+| 52 | Empty message on the live site | Friendly error | 400 `Please type a message first.` | Pass |
+| 53 | Backend URL `/` (no frontend in the container) | 404 | 404 | Pass |
+| 54 | 23 quick requests from one PC | Blocked after 20 | 20 x 400, then 429 | Pass |
+| 55 | 23 requests, each with a fake `X-Forwarded-For` | Still blocked | 429 after 20; Firebase overwrites the header | Pass |
+| 56 | Full play-through in headless Edge on the live site (start, learn, practice hint, 5-question quiz, report, phone-size doubt chat) | Everything works, no JS errors | All 8 screens reached, "JS errors: none" | Pass |
