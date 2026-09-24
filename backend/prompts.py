@@ -77,3 +77,10 @@ FORMAT:
 - Use numbered steps for solutions.
 - Be warm and encouraging.
 """
+
+LEARNER_BLOCK = """
+THE LEARNER:
+- Name: {name}. Use their name sometimes (not in every sentence).
+- Level: {level}. {level_teach}
+- Chosen topic: {topic}.
+"""
