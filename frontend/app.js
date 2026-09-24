@@ -27,3 +27,36 @@ const state = {
 function newExercise() {
   return { questions: [], index: 0, attempts: 0, answered: false, checking: false, lastAnswer: "", feedback: null };
 }
+
+// ---------- Page elements ----------
+const $ = (id) => document.getElementById(id);
+const subtitleEl = $("subtitle");
+const errorEl = $("error");
+const startScreen = $("start-screen");
+const startForm = $("start-form");
+const mainScreen = $("main-screen");
+const tabs = document.querySelectorAll(".tab");
+const chatPanel = $("chat-panel");
+const chatEl = $("chat");
+const chatForm = $("chat-form");
+const inputEl = $("message");
+const sendBtn = $("send");
+const practicePanel = $("practice-panel");
+const quizPanel = $("quiz-panel");
+const finishBtn = $("finish");
+const progressEl = $("progress");
+const summaryScreen = $("summary-screen");
+
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text; // textContent, never innerHTML, so AI text can't inject HTML
+  return node;
+}
+
+function button(label, className, onClick) {
+  const b = el("button", className, label);
+  b.type = "button";
+  b.addEventListener("click", onClick);
+  return b;
+}
