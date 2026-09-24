@@ -383,3 +383,128 @@ function nextPractice() {
   Object.assign(p, newExercise(), { questions, index: index + 1, number: number + 1 });
   renderPractice();
 }
+
+// ---------- Quiz ----------
+// 5 questions, one try each, score at the end.
+function renderQuiz() {
+  const z = state.quiz;
+  const p = state.profile;
+  let card;
+
+  if (z.status === "intro") {
+    card = el("div", "card");
+    card.append(
+      el("h2", "", `Quiz: ${TOPICS[p.topic]}`),
+      el("p", "", `${QUIZ_LENGTH} questions at ${p.level} level. You get one try per question, and your score is shown at the end.`),
+      el("div", "actions"),
+    );
+    card.lastChild.appendChild(button("Start quiz", "primary", startQuiz));
+  } else if (z.status === "loading") {
+    card = loadingCard("Preparing your quiz...");
+  } else if (z.status === "question") {
+    const q = z.questions[z.index];
+    card = el("div", "card");
+    card.append(
+      questionMeta(`Question ${z.index + 1} of ${z.questions.length}`, q.skill),
+      progressBar((z.index + (z.answered ? 1 : 0)) / z.questions.length),
+      el("p", "q-text", q.question),
+      answerForm(z, "Submit", submitQuizAnswer),
+    );
+    if (z.checking) card.appendChild(loadingLine("Checking your answer..."));
+    else if (z.feedback) card.appendChild(feedbackBox(z.feedback));
+    if (z.answered) {
+      const last = z.index + 1 >= z.questions.length;
+      const actions = el("div", "actions");
+      actions.appendChild(button(last ? "See my score" : "Next question", "primary", nextQuizQuestion));
+      card.appendChild(actions);
+    }
+  } else {
+    card = quizResultsCard();
+  }
+  quizPanel.replaceChildren(card);
+}
+
+async function startQuiz() {
+  const z = state.quiz;
+  Object.assign(z, newExercise(), { status: "loading", results: [] });
+  showError("");
+  setBusy(true);
+  renderQuiz();
+  try {
+    const data = await api("/practice", { profile: state.profile, count: QUIZ_LENGTH });
+    z.questions = data.questions;
+    z.status = "question";
+  } catch (err) {
+    showError(err.message);
+    z.status = "intro";
+  } finally {
+    setBusy(false);
+    renderQuiz();
+  }
+}
+
+async function submitQuizAnswer(answer) {
+  const z = state.quiz;
+  const q = z.questions[z.index];
+  z.checking = true;
+  showError("");
+  setBusy(true);
+  renderQuiz();
+  try {
+    const r = await checkAnswer(q, answer, 2);
+    z.answered = true;
+    z.results.push({ question: q.question, answer, correct: r.correct, correctAnswer: r.correct_answer, skill: q.skill });
+    recordResult(q.skill, r.correct, r.weak_topic);
+    z.feedback = r.correct
+      ? { kind: "good", title: "Correct!", lines: [r.explanation] }
+      : { kind: "bad", title: `Not quite. The answer is ${r.correct_answer}`, lines: [r.explanation] };
+  } catch (err) {
+    showError(err.message);
+  } finally {
+    z.checking = false;
+    setBusy(false);
+    renderQuiz();
+  }
+}
+
+function nextQuizQuestion() {
+  const z = state.quiz;
+  if (z.index + 1 >= z.questions.length) {
+    z.status = "done";
+    state.progress.quizScores.push({ score: z.results.filter((r) => r.correct).length, total: z.results.length });
+    renderProgress();
+  } else {
+    Object.assign(z, { index: z.index + 1, attempts: 0, answered: false, lastAnswer: "", feedback: null });
+  }
+  renderQuiz();
+}
+
+function quizResultsCard() {
+  const z = state.quiz;
+  const score = z.results.filter((r) => r.correct).length;
+  const total = z.results.length;
+  const message =
+    score === total ? `Excellent work, ${state.profile.name}! A perfect score.`
+    : score >= total / 2 ? `Good job, ${state.profile.name}! Look at the ones you missed below.`
+    : `Keep going, ${state.profile.name}! Try some practice questions, then take the quiz again.`;
+
+  const card = el("div", "card");
+  const ring = el("div", "score-ring");
+  ring.style.setProperty("--p", total ? Math.round((100 * score) / total) : 0);
+  ring.appendChild(el("div", "", `${score}/${total}`));
+  card.append(el("h2", "center", "Quiz finished"), ring, el("p", "center", message));
+
+  const list = el("ul", "review");
+  z.results.forEach((r, i) => {
+    const item = el("li");
+    const line = el("div");
+    line.append(el("span", `mark ${r.correct ? "good" : "bad"}`, r.correct ? "✓" : "✗"), `Q${i + 1}. ${r.question}`);
+    item.append(line, el("div", "detail", `Your answer: ${r.answer} · Correct answer: ${r.correctAnswer}`));
+    list.appendChild(item);
+  });
+
+  const actions = el("div", "actions");
+  actions.appendChild(button("Take another quiz", "primary", startQuiz));
+  card.append(list, actions);
+  return card;
+}
