@@ -93,3 +93,24 @@ function setBusy(busy) {
   finishBtn.disabled = busy;
   inputEl.disabled = busy;
 }
+
+// ---------- Start screen ----------
+startForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const name = $("name").value.trim();
+  if (!name) return showError("Please enter your name.");
+  if (!/^[\p{L}\p{M} .'-]{1,40}$/u.test(name)) return showError("Please use only letters in your name.");
+
+  state.profile = {
+    name,
+    level: startForm.querySelector('input[name="level"]:checked').value,
+    topic: startForm.querySelector('input[name="topic"]:checked').value,
+  };
+  showError("");
+  subtitleEl.textContent = `${name} · ${state.profile.level} · ${TOPICS[state.profile.topic]}`;
+  startScreen.hidden = true;
+  mainScreen.hidden = false;
+  finishBtn.hidden = false;
+  renderProgress();
+  switchMode("learn");
+});
