@@ -237,3 +237,12 @@ async def handle_unexpected_error(request: Request, exc: Exception):
 @app.get("/api/health")
 def health():
     return {"status": "ok"}
+
+
+@app.post("/api/chat")
+def chat(req: ChatRequest):
+    p = req.profile
+    messages = [{"role": "system", "content": build_chat_prompt(p.name, p.level, p.topic, req.mode)}]
+    messages += [turn.model_dump() for turn in req.history]
+    messages.append({"role": "user", "content": req.message})
+    return {"reply": chat_completion(messages)}
