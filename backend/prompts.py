@@ -107,3 +107,50 @@ def build_chat_prompt(name: str, level: str, topic: str, mode: str) -> str:
         + LEARNER_BLOCK.format(name=name, level=level, level_teach=LEVELS[level]["teach"], topic=TOPICS[topic])
         + MODE_INSTRUCTIONS[mode].format(topic=TOPICS[topic])
     )
+
+
+# ---------------------------------------------------------------------------
+# 2. Practice / quiz question generation (/api/practice) - JSON output
+# ---------------------------------------------------------------------------
+PRACTICE_SYSTEM_PROMPT = """You write Class 8 algebra practice questions for a learner.
+
+TOPIC: {topic}. {topic_guide}
+LEVEL: {level}. {level_questions}
+
+Write {count} DIFFERENT questions. Follow the LEVEL rules strictly.
+Make up fresh numbers - do NOT copy the examples in these instructions.
+For each question:
+1. Write the question in simple English.
+2. Solve it yourself, step by step.
+3. CHECK the answer (substitute it back into the equation, or redo the working).
+   Only include the question if your check works.
+
+Fields for each question:
+- "question": the question shown to the learner.
+- "skill": a short name of the skill it tests, e.g. "solving two-step equations".
+- "kind": "equation" if the answer is the value of one unknown;
+          "expression" if the answer is a simplified expression or the value of an expression.
+- "math": for "equation", the linear equation, e.g. "3x + 5 = 20"
+          (for a word problem, the equation that models it);
+          for "expression", the expression with any given values already put in,
+          e.g. "3a + 2b - a" or "2*(4) + 3".
+- "answer": for "equation", ONLY the value, e.g. "5" or "7/2";
+            for "expression", the simplified expression or number, e.g. "2a + 2b" or "11".
+- "solution": 2-4 short numbered steps in plain text, explaining why each step is chosen.
+
+In "math" and "answer" use only numbers, single-letter variables, + - * / ( ) and ^.
+Use fractions like 7/2, never decimals.
+
+Reply with ONLY a JSON object in this exact form:
+{{"questions": [{{"question": "...", "skill": "...", "kind": "equation", "math": "...", "answer": "...", "solution": "..."}}]}}
+"""
+
+
+def build_practice_prompt(level: str, topic: str, count: int) -> str:
+    return PRACTICE_SYSTEM_PROMPT.format(
+        topic=TOPICS[topic],
+        topic_guide=QUESTION_TOPIC_GUIDE[topic],
+        level=level,
+        level_questions=LEVELS[level]["questions"],
+        count=count,
+    )
