@@ -400,3 +400,28 @@ input[type="text"]:focus, textarea:focus { outline: none; border-color: var(--pr
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---------- Phones ---------- */
+@media (max-width: 640px) {
+  .header { padding: 12px 16px; }
+  .logo { width: 36px; height: 36px; font-size: 1.15rem; border-radius: 11px; }
+  .error { margin: 0 16px 10px; }
+  .start { padding: 4px 16px 24px; }
+  .hero { margin: 8px auto 18px; }
+  .card { padding: 18px; }
+  .choices.levels span { padding: 10px 6px; text-align: center; font-size: 0.9rem; }
+  .choices.levels small { display: none; }
+  .choices.topics { grid-template-columns: 1fr; }
+  .toolbar { padding: 0 16px 10px; }
+  .tab { padding: 8px 10px; font-size: 0.9rem; }
+  .chat { padding: 4px 16px 12px; }
+  .progress { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .chip { white-space: nowrap; flex-shrink: 0; }
+  .bubble { max-width: 86%; }
+  .avatar { display: none; }
+  .composer { margin: 0 16px calc(12px + env(safe-area-inset-bottom)); }
+  .exercise { padding: 4px 16px 20px; }
+  .answer-form { flex-direction: column; }
+  .stats { grid-template-columns: 1fr 1fr; }
+  .areas { grid-template-columns: 1fr; }
+}
