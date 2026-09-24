@@ -21,3 +21,20 @@ copy .env.example .env      # then open .env and paste your Groq key
 ```
 
 Open http://localhost:8000 in your browser.
+
+## Run the tests
+
+```powershell
+.\.venv\Scripts\pip install -r backend\requirements-dev.txt
+cd backend
+..\.venv\Scripts\python tests\test_math_check.py    # maths checker, no AI needed
+..\.venv\Scripts\python tests\test_fake_ai.py       # API tests with a fake AI, no Groq key needed
+```
+
+## Project structure
+
+```
+backend/    FastAPI app (main.py), Groq client, prompts, maths checker, Dockerfile, tests
+frontend/   index.html, style.css, app.js (no framework, no build step)
+docs/       ARCHITECTURE, PROMPTS_LOG, TEST_REPORT, CHALLENGES, DEPLOY
+```
