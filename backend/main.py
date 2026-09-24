@@ -167,3 +167,32 @@ class SummaryResult(BaseModel):
     next_lesson: NextLesson
     tips: list[str] = Field(default_factory=list)
     encouragement: str = ""
+
+
+# ---- Rate limiting (simple, in memory, per IP) ----
+_requests_by_ip: dict[str, deque] = defaultdict(deque)
+
+
+def _client_ip(request: Request) -> str:
+    # Behind Firebase Hosting / Cloud Run the real client IP is the first X-Forwarded-For entry.
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+@app.middleware("http")
+async def rate_limit(request: Request, call_next):
+    path = request.url.path
+    if path.startswith("/api/") and path != "/api/health":
+        now = time.monotonic()
+        hits = _requests_by_ip[_client_ip(request)]
+        while hits and now - hits[0] > RATE_LIMIT_WINDOW_SECONDS:
+            hits.popleft()
+        if len(hits) >= RATE_LIMIT_REQUESTS:
+            return JSONResponse(
+                status_code=429,
+                content={"error": "You are sending messages too fast. Please wait a minute and try again."},
+            )
+        hits.append(now)
+    return await call_next(request)
