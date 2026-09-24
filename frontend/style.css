@@ -45,3 +45,15 @@ body {
   display: flex;
   flex-direction: column;
 }
+@media (min-width: 900px) {
+  .app {
+    height: calc(100dvh - 48px);
+    margin: 24px auto;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 28px;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+  }
+}
