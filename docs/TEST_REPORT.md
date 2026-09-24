@@ -55,3 +55,18 @@ Tests marked "(fake AI)" replace Groq with fixed replies, so we can test our own
 | 35 | Very easy question: "what is x + x?" | 2x with a short reason | "x + x = 2x ... Now try: what is 4x + 2x?" | Pass |
 | 36 | Very hard: "Solve x^2 - 5x + 6 = 0" | Says it is beyond the topic | "a quadratic ... is a bit beyond that scope. How about 2x + 3 = 11?" | Pass |
 | 37 | Server stopped, then press Send | "Can't reach the tutor", text kept in box | | Pending (manual browser test) |
+
+## Phase 3 - Progress tracking + session report
+
+| No. | User Action | Expected Result | Actual Result | Status |
+|---|---|---|---|---|
+| 38 | Weak session: 2/6 correct, weak "variables on both sides" (real AI) | Same topic, practise the weak skill | Next: "Linear equations in one variable: variables on both sides" (Intermediate), reason "accuracy below 50%" | Pass |
+| 39 | Strong session: 9/10 at Intermediate (real AI) | Same topic, next level | Next level Advanced, same topic | Pass |
+| 40 | Strong session: 9/10 at Advanced (real AI) | Next topic | "Word problems that lead to linear equations: setting up equations from text" | Pass |
+| 41 | Finish with nothing answered (real AI) | Report works, recommends practice | "You did not get a chance to answer any questions..." + practise same topic | Pass |
+| 42 | Report wording (real AI) | Speaks to learner as "you", stays in Class 8 | First run: "She ..." and "Linear Equations with Parameters" (C8). After fix: "You ...", Class 8 titles only | Pass (after fix) |
+| 43 | AI returns an invalid level in next_lesson (fake AI) | Retry once | 200 after retry | Pass |
+| 44 | Send correct = 9, attempted = 5 | Rejected | 400 `Correct answers can't be more than questions answered.` | Pass |
+| 45 | Strong/weak logic in the browser (8 results, mixed skills, duplicate weak topics, missing skill name) | 75%+ strong, under 50% weak, 50-74% neither, no duplicates | attempted 8, correct 4, weak = [Variables on both sides, inverse operations, moving terms...], strong = [] (the 67% and 50% skills are neither) | Pass |
+| 46 | Numbers on the report | Come from the browser, not the AI | Report tiles use the browser counts; AI only writes the text | Pass (code check) |
+| 47 | Full flow in the browser: practice + quiz, then Finish session, Back to session, Start a new session | Progress line updates; report shows; buttons work | | Pending (manual browser test) |
